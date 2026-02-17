@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -78,6 +79,8 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      // Clear the persistent login state
+      await _clearLoginState();
       if (kDebugMode) {
         print('User signed out successfully');
       }
@@ -87,5 +90,57 @@ class AuthService {
       }
       rethrow;
     }
+  }
+
+  // Save login state to SharedPreferences
+  Future<void> _saveLoginState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      if (kDebugMode) {
+        print('Login state saved: true');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to save login state: $e');
+      }
+    }
+  }
+
+  // Clear login state from SharedPreferences
+  Future<void> _clearLoginState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', false);
+      if (kDebugMode) {
+        print('Login state cleared: false');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to clear login state: $e');
+      }
+    }
+  }
+
+  // Check if user is logged in
+  Future<bool> isLoggedIn() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+      if (kDebugMode) {
+        print('Login state retrieved: $isLoggedIn');
+      }
+      return isLoggedIn;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to retrieve login state: $e');
+      }
+      return false;
+    }
+  }
+
+  // Method to call after successful login/registration
+  Future<void> handleSuccessfulAuth() async {
+    await _saveLoginState();
   }
 }

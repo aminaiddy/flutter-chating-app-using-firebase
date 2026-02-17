@@ -85,6 +85,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text,
       );
 
+      // Save login state after successful registration
+      await _authService.handleSuccessfulAuth();
+
       if (!mounted) return;
       _passwordController.clear();
       _confirmPasswordController.clear();

@@ -54,6 +54,9 @@ dev_dependencies:
   # Tool to generate launcher icons
   flutter_launcher_icons: ^0.11.0
 
+  # For persistent storage of user preferences
+  shared_preferences: ^2.3.2
+
 
 # -----------------------------
 # Launcher Icon Configuration

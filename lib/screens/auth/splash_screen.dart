@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
+import '../home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool firebaseConnected;
@@ -74,24 +76,50 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Start the animation
     _animationController.repeat(reverse: true);
 
-    // Navigate after 2.5 seconds for more dramatic effect
+    // Check login status and navigate accordingly after 2 seconds
     Future.delayed(const Duration(seconds: 2), () {
+      _checkLoginStatus();
+    });
+  }
+
+  Future<void> _checkLoginStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
       if (mounted) {
-        if (widget.firebaseConnected) {
-          // Navigate to login screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
-        } else {
-          // Navigate to register screen
+        if (!widget.firebaseConnected) {
+          // Firebase not connected, show error
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const RegisterScreen()),
           );
+          return;
+        }
+
+        if (isLoggedIn) {
+          // User is logged in, go to ChatScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        } else {
+          // User is not logged in, go to LoginScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
         }
       }
-    });
+    } catch (e) {
+      // If there's an error checking login status, default to login screen
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    }
   }
 
   @override
